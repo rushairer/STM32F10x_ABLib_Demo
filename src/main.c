@@ -3,6 +3,7 @@
 #include "stm32f10x_abl_led.h"
 #include "stm32f10x_abl_key.h"
 #include "stm32f10x_abl_oled.h"
+#include "stm32f10x_abl_servo.h"
 
 const uint8_t OLED_BMP1[] =
     {
@@ -90,6 +91,11 @@ int main()
     // Device
     Oled1_Init(&oled1);
 
+    SERVO_TypeDef servo1;
+    SERVO_Init(&servo1, RCC_APB1Periph_TIM3, TIM3, 1, RCC_APB2Periph_GPIOA, GPIOA, GPIO_Pin_6);
+    float servoAngle = 0;
+    SERVO_SetAngle(&servo1, servoAngle);
+
     while (1) {
         if (KEY_IsPressed(&key1) == 1) {
             LED_Toggle(&led1);
@@ -112,6 +118,13 @@ int main()
                 OLED_CleanBuffer(&oled1);
                 OLED_RefreshScreen(&oled1);
             }
+
+            servoAngle += 30;
+            if (servoAngle > 180) {
+                servoAngle = 0;
+            }
+
+            SERVO_SetAngle(&servo1, servoAngle);
         }
         Delay_ms(100);
     }
