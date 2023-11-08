@@ -8,6 +8,9 @@
         "EIDE.SourceTree.AutoSearchIncludePath": true,
         "EIDE.SourceTree.AutoSearchObjFile": true,
         "files.associations": {
+            "*.embeddedhtml": "html",
+            "*.vue": "vue",
+            "*.toml": "toml",
             ".eideignore": "ignore",
             "*.a51": "a51",
             "*.h": "c",
@@ -17,7 +20,8 @@
             "*.c++": "cpp",
             "*.cpp": "cpp",
             "*.cxx": "cpp",
-            "*.cc": "cpp"
+            "*.cc": "cpp",
+            "type_traits": "c"
         },
         "files.autoGuessEncoding": true,
         "C_Cpp.default.configurationProvider": "cl.eide",
