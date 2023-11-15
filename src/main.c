@@ -1,3 +1,4 @@
+#include <string.h>
 #include "stm32f10x.h"
 #include "stm32f10x_abl_delay.h"
 #include "stm32f10x_abl_led.h"
@@ -9,7 +10,7 @@
 #include "stm32f10x_abl_serial.h"
 #include "stm32f10x_abl_nrf24l01.h"
 #include "stm32f10x_abl_spi_soft.h"
-#include <string.h>
+#include "stm32f10x_abl_iap.h"
 
 SERIAL_InitTypeDef serial;
 
@@ -28,6 +29,14 @@ int main()
     SPI_Soft_InitTypeDef spi;
     SPI_Soft_Init(&spi, RCC_APB2Periph_GPIOA, GPIOA, GPIO_Pin_4, GPIO_Pin_5, GPIO_Pin_6, GPIO_Pin_7);
     Nrf24l011_Init(&wifi, &spi);
+
+    IAP_InitTypeDef IAPx;
+    IAP_Init(
+        &IAPx,
+        0x8002000,
+        &wifi,
+        (pIAPReceiveDataFunction)NRF24L01_ReceiveData,
+        (pIAPOutputStringFunction)NRF24L01_SendString);
 
     if (WifiMode == 1) {
         NRF24L01_TxMode(&wifi);
@@ -85,23 +94,63 @@ int main()
     // uint8_t Buf[32] = {5, 0x61, 0x62, 0x65, 0x6e, 0x61};
     uint8_t LastChar = 0;
     while (1) {
-        if (WifiMode == 1) {
-            Buf[0] = 7;
-            Buf[1] = 0x61;
-            Buf[2] = 0x62;
-            Buf[3] = 0x65;
-            Buf[4] = 0x6E;
-            Buf[5] = LastChar++;
-            Buf[6] = 0x0D; // \r
-            Buf[7] = 0x0A; // \n
-            NRF24L01_SendTxBuf(&wifi, Buf);
-        } else {
-            if (!NRF24L01_Get_Value_Flag(&wifi)) {
-                NRF24L01_GetRxBuf(&wifi, Buf);
+        // NRF24L01_TxMode(&wifi);
+        // Delay_ms(100);
+        // IAP_Menu(&IAPx);
+        // NRF24L01_RxMode(&wifi);
+        // Delay_ms(300);
 
+        if (WifiMode == 1) {
+            NRF24L01_TxMode(&wifi);
+            Delay_ms(100);
+
+            Buf[0]  = 31;
+            Buf[1]  = 0x61;
+            Buf[2]  = 0x62;
+            Buf[3]  = 0x65;
+            Buf[4]  = 0x6E;
+            Buf[5]  = LastChar++;
+            Buf[6]  = 0x0D; // \r
+            Buf[7]  = 0x0A; // \n
+            Buf[8]  = 0x62;
+            Buf[9]  = 0x0D; // \r
+            Buf[10] = 0x0A; // \n
+            Buf[11] = 0x62;
+            Buf[12] = 0x62;
+            Buf[13] = 0x62;
+            Buf[14] = 0x62;
+            Buf[18] = 0x62;
+            Buf[19] = 0x62;
+            Buf[20] = 0x62;
+            Buf[22] = 0x62;
+            Buf[23] = 0x62;
+            Buf[24] = 0x62;
+            Buf[25] = 0x62;
+            Buf[26] = 0x62;
+            Buf[27] = 0x62;
+            Buf[28] = 0x65;
+            Buf[29] = 0x64;
+            Buf[30] = 0x63;
+            Buf[31] = 0x62;
+            NRF24L01_SendTxBuf(&wifi, Buf);
+            //  NRF24L01_SendString(&wifi, (char *)Buf);
+        } else {
+            // NRF24L01_RxMode(&wifi);
+            if (!NRF24L01_Get_Value_Flag(&wifi)) {
+                NRF24L01_GetStringWithoutSuffix(&wifi, (char *)Buf);
+                // NRF24L01_GetRxBuf(&wifi, Buf);
                 OLED_ShowString(&oled1, 0, 40, "                                                  ", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
                 OLED_ShowString(&oled1, 0, 40, (char *)Buf, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
                 OLED_RefreshScreen(&oled1);
+
+                NRF24L01_TxMode(&wifi);
+                Delay_ms(300);
+                IAP_ShowMenu(&IAPx);
+                IAP_Download(&IAPx);
+                Delay_ms(900);
+                IAP_Execute(&IAPx);
+                NRF24L01_RxMode(&wifi);
+                Delay_ms(300);
             }
         }
 
