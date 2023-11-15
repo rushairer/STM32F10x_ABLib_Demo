@@ -36,7 +36,7 @@ int main()
         0x8002000,
         &wifi,
         (pIAPReceiveDataFunction)NRF24L01_ReceiveData,
-        (pIAPOutputStringFunction)NRF24L01_SendString);
+        (pIAPOutputDataFunction)NRF24L01_SendData);
 
     if (WifiMode == 1) {
         NRF24L01_TxMode(&wifi);
@@ -102,7 +102,7 @@ int main()
 
         if (WifiMode == 1) {
             NRF24L01_TxMode(&wifi);
-            Delay_ms(100);
+            Delay_ms(10);
 
             Buf[0]  = 31;
             Buf[1]  = 0x61;
@@ -143,8 +143,9 @@ int main()
                 OLED_ShowString(&oled1, 0, 40, (char *)Buf, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
                 OLED_RefreshScreen(&oled1);
 
+                // 切换到发送模式 IAP_ShowMenu
                 NRF24L01_TxMode(&wifi);
-                Delay_ms(300);
+                Delay_ms(10);
                 IAP_ShowMenu(&IAPx);
                 IAP_Download(&IAPx);
                 Delay_ms(900);
