@@ -11,6 +11,7 @@
 #include "stm32f10x_abl_nrf24l01.h"
 #include "stm32f10x_abl_spi_soft.h"
 #include "stm32f10x_abl_iap.h"
+#include "stm32f10x_abl_ymodem_nrf24l01.h"
 
 SERIAL_InitTypeDef serial;
 
@@ -22,7 +23,8 @@ int main()
 
     KEY_InitTypeDef key1;
     KEY_Init(&key1, RCC_APB2Periph_GPIOB, GPIOB, GPIO_Pin_12);
-    // LED_InitTypeDef led1;
+    LED_InitTypeDef ledDefault;
+    LedDefault_Init(&ledDefault);
     // Led1_Init(&led1);
 
     NRF24L01_InitTypeDef wifi;
@@ -35,12 +37,15 @@ int main()
         &IAPx,
         0x8002000,
         &wifi,
-        (pIAPReceiveDataFunction)NRF24L01_ReceiveData,
+        (pIAPYmodemReceiveDataFunction)NRF24L01_YmodemReceiveData,
         (pIAPOutputDataFunction)NRF24L01_SendData);
 
     if (WifiMode == 1) {
         NRF24L01_TxMode(&wifi);
     } else {
+        IAP_ShowMenu(&IAPx);
+        Delay_ms(10);
+
         NRF24L01_RxMode(&wifi);
     }
 
@@ -84,7 +89,7 @@ int main()
     //     Delay_ms(2000);
     // }
 
-    OLED_ShowString(&oled1, 0, 0, "nRF24L01 is ready", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+    OLED_ShowString(&oled1, 30, 20, "IAP MODE", OLED_FONT_SIZE_16, OLED_COLOR_NORMAL);
     OLED_RefreshScreen(&oled1);
 
     // Serial1_Init(&serial);
@@ -133,25 +138,22 @@ int main()
             Buf[30] = 0x63;
             Buf[31] = 0x62;
             NRF24L01_SendTxBuf(&wifi, Buf);
-            //  NRF24L01_SendString(&wifi, (char *)Buf);
         } else {
-            // NRF24L01_RxMode(&wifi);
+            LED_Toggle(&ledDefault);
+            NRF24L01_RxMode(&wifi);
+            Delay_ms(10);
             if (!NRF24L01_Get_Value_Flag(&wifi)) {
                 NRF24L01_GetStringWithoutSuffix(&wifi, (char *)Buf);
-                // NRF24L01_GetRxBuf(&wifi, Buf);
-                OLED_ShowString(&oled1, 0, 40, "                                                  ", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
-                OLED_ShowString(&oled1, 0, 40, (char *)Buf, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
-                OLED_RefreshScreen(&oled1);
-
-                // 切换到发送模式 IAP_ShowMenu
-                NRF24L01_TxMode(&wifi);
-                Delay_ms(10);
-                IAP_ShowMenu(&IAPx);
-                IAP_Download(&IAPx);
-                Delay_ms(900);
-                IAP_Execute(&IAPx);
-                NRF24L01_RxMode(&wifi);
-                Delay_ms(300);
+                switch (Buf[0]) {
+                    case '1':
+                        IAP_Download(&IAPx);
+                        break;
+                    case '3':
+                    default:
+                        Delay_ms(100);
+                        LED_On(&ledDefault);
+                        IAP_Execute(&IAPx);
+                }
             }
         }
 
