@@ -12,6 +12,7 @@
 #include "stm32f10x_abl_spi_soft.h"
 #include "stm32f10x_abl_iap.h"
 #include "stm32f10x_abl_ymodem_nrf24l01.h"
+#include "stm32f10x_abl_joystick.h"
 
 SERIAL_InitTypeDef serial;
 
@@ -27,27 +28,40 @@ int main()
     LedDefault_Init(&ledDefault);
     // Led1_Init(&led1);
 
-    NRF24L01_InitTypeDef wifi;
-    SPI_Soft_InitTypeDef spi;
-    SPI_Soft_Init(&spi, RCC_APB2Periph_GPIOA, GPIOA, GPIO_Pin_4, GPIO_Pin_5, GPIO_Pin_6, GPIO_Pin_7);
-    Nrf24l011_Init(&wifi, &spi);
+    // NRF24L01_InitTypeDef wifi;
+    // SPI_Soft_InitTypeDef spi;
+    // SPI_Soft_Init(&spi, RCC_APB2Periph_GPIOA, GPIOA, GPIO_Pin_4, GPIO_Pin_5, GPIO_Pin_6, GPIO_Pin_7);
+    // Nrf24l011_Init(&wifi, &spi);
 
-    IAP_InitTypeDef IAPx;
-    IAP_Init(
-        &IAPx,
-        0x8002000,
-        &wifi,
-        (pIAPYmodemReceiveDataFunction)NRF24L01_YmodemReceiveData,
-        (pIAPOutputDataFunction)NRF24L01_SendData);
+    // IAP_InitTypeDef IAPx;
+    // IAP_Init(
+    //     &IAPx,
+    //     0x8002000,
+    //     &wifi,
+    //     (pIAPYmodemReceiveDataFunction)NRF24L01_YmodemReceiveData,
+    //     (pIAPOutputDataFunction)NRF24L01_SendData);
 
-    if (WifiMode == 1) {
-        NRF24L01_TxMode(&wifi);
-    } else {
-        IAP_ShowMenu(&IAPx);
-        Delay_ms(10);
+    // if (WifiMode == 1) {
+    //     NRF24L01_TxMode(&wifi);
+    // } else {
+    //     IAP_ShowMenu(&IAPx);
+    //     Delay_ms(10);
 
-        NRF24L01_RxMode(&wifi);
-    }
+    //     NRF24L01_RxMode(&wifi);
+    // }
+
+    JOYSTICK_InitTypeDef Joystick1;
+    JOYSTICK_Init(
+        &Joystick1,
+        RCC_APB2Periph_ADC1,
+        ADC1,
+        RCC_APB2Periph_GPIOA,
+        GPIOA,
+        GPIO_Pin_0,
+        GPIO_Pin_1,
+        ADC_Channel_0,
+        ADC_Channel_1,
+        GPIO_Pin_2);
 
     // KEY4X4_InitTypeDef keyboard;
     // KEY4X4_Init(
@@ -89,74 +103,94 @@ int main()
     //     Delay_ms(2000);
     // }
 
-    OLED_ShowString(&oled1, 30, 20, "IAP MODE", OLED_FONT_SIZE_16, OLED_COLOR_NORMAL);
-    OLED_RefreshScreen(&oled1);
+    // OLED_ShowString(&oled1, 30, 20, "IAP MODE", OLED_FONT_SIZE_16, OLED_COLOR_NORMAL);
+    // OLED_RefreshScreen(&oled1);
 
     // Serial1_Init(&serial);
 
     // float servoAngle[10] = {0};
-    uint8_t Buf[32] = {0};
+    // uint8_t Buf[32] = {0};
     // uint8_t Buf[32] = {5, 0x61, 0x62, 0x65, 0x6e, 0x61};
-    uint8_t LastChar = 0;
+    // uint8_t LastChar = 0;
     while (1) {
+        // JOYSTICK DEMO
+        uint16_t xValue, yValue;
+        uint8_t Joystick1IsPressed;
+
+        xValue             = JOYSTICK_GetXValue(&Joystick1);
+        yValue             = JOYSTICK_GetYValue(&Joystick1);
+        Joystick1IsPressed = JOYSTICK_IsPressed(&Joystick1);
+
+        OLED_ShowString(&oled1, 0, 0, "X", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        OLED_ShowNumber(&oled1, 16, 0, xValue, 4, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+
+        OLED_ShowString(&oled1, 60, 0, "Y", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        OLED_ShowNumber(&oled1, 76, 0, yValue, 4, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+
+        OLED_ShowString(&oled1, 0, 30, "IsPressed", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        OLED_ShowNumber(&oled1, 100, 30, Joystick1IsPressed, 2, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+
+        OLED_RefreshScreen(&oled1);
+
         // NRF24L01_TxMode(&wifi);
         // Delay_ms(100);
         // IAP_Menu(&IAPx);
         // NRF24L01_RxMode(&wifi);
         // Delay_ms(300);
 
-        if (WifiMode == 1) {
-            NRF24L01_TxMode(&wifi);
-            Delay_ms(10);
+        /*
+            if (WifiMode == 1) {
+                NRF24L01_TxMode(&wifi);
+                Delay_ms(10);
 
-            Buf[0]  = 31;
-            Buf[1]  = 0x61;
-            Buf[2]  = 0x62;
-            Buf[3]  = 0x65;
-            Buf[4]  = 0x6E;
-            Buf[5]  = LastChar++;
-            Buf[6]  = 0x0D; // \r
-            Buf[7]  = 0x0A; // \n
-            Buf[8]  = 0x62;
-            Buf[9]  = 0x0D; // \r
-            Buf[10] = 0x0A; // \n
-            Buf[11] = 0x62;
-            Buf[12] = 0x62;
-            Buf[13] = 0x62;
-            Buf[14] = 0x62;
-            Buf[18] = 0x62;
-            Buf[19] = 0x62;
-            Buf[20] = 0x62;
-            Buf[22] = 0x62;
-            Buf[23] = 0x62;
-            Buf[24] = 0x62;
-            Buf[25] = 0x62;
-            Buf[26] = 0x62;
-            Buf[27] = 0x62;
-            Buf[28] = 0x65;
-            Buf[29] = 0x64;
-            Buf[30] = 0x63;
-            Buf[31] = 0x62;
-            NRF24L01_SendTxBuf(&wifi, Buf);
-        } else {
-            LED_Toggle(&ledDefault);
-            NRF24L01_RxMode(&wifi);
-            Delay_ms(10);
-            if (!NRF24L01_Get_Value_Flag(&wifi)) {
-                NRF24L01_GetStringWithoutSuffix(&wifi, (char *)Buf);
-                switch (Buf[0]) {
-                    case '1':
-                        IAP_Download(&IAPx);
-                        break;
-                    case '3':
-                    default:
-                        Delay_ms(100);
-                        LED_On(&ledDefault);
-                        IAP_Execute(&IAPx);
+                Buf[0]  = 31;
+                Buf[1]  = 0x61;
+                Buf[2]  = 0x62;
+                Buf[3]  = 0x65;
+                Buf[4]  = 0x6E;
+                Buf[5]  = LastChar++;
+                Buf[6]  = 0x0D; // \r
+                Buf[7]  = 0x0A; // \n
+                Buf[8]  = 0x62;
+                Buf[9]  = 0x0D; // \r
+                Buf[10] = 0x0A; // \n
+                Buf[11] = 0x62;
+                Buf[12] = 0x62;
+                Buf[13] = 0x62;
+                Buf[14] = 0x62;
+                Buf[18] = 0x62;
+                Buf[19] = 0x62;
+                Buf[20] = 0x62;
+                Buf[22] = 0x62;
+                Buf[23] = 0x62;
+                Buf[24] = 0x62;
+                Buf[25] = 0x62;
+                Buf[26] = 0x62;
+                Buf[27] = 0x62;
+                Buf[28] = 0x65;
+                Buf[29] = 0x64;
+                Buf[30] = 0x63;
+                Buf[31] = 0x62;
+                NRF24L01_SendTxBuf(&wifi, Buf);
+            } else {
+                LED_Toggle(&ledDefault);
+                NRF24L01_RxMode(&wifi);
+                Delay_ms(10);
+                if (!NRF24L01_Get_Value_Flag(&wifi)) {
+                    NRF24L01_GetStringWithoutSuffix(&wifi, (char *)Buf);
+                    switch (Buf[0]) {
+                        case '1':
+                            IAP_Download(&IAPx);
+                            break;
+                        case '3':
+                        default:
+                            Delay_ms(100);
+                            LED_On(&ledDefault);
+                            IAP_Execute(&IAPx);
+                    }
                 }
             }
-        }
-
+    */
         // uint16_t keyValue = KEY4X4_GetKey(&keyboard);
         // OLED_ShowBinNumber(&oled1, 0, 0, keyValue, 16, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
 
