@@ -11,7 +11,7 @@
 #include "stm32f10x_abl_nrf24l01.h"
 #include "stm32f10x_abl_spi_soft.h"
 #include "stm32f10x_abl_iap.h"
-#include "stm32f10x_abl_ymodem_nrf24l01.h"
+#include "stm32f10x_abl_ymodem.h"
 #include "stm32f10x_abl_joystick.h"
 
 SERIAL_InitTypeDef serial;
@@ -33,22 +33,14 @@ int main()
     // SPI_Soft_Init(&spi, RCC_APB2Periph_GPIOA, GPIOA, GPIO_Pin_4, GPIO_Pin_5, GPIO_Pin_6, GPIO_Pin_7);
     // Nrf24l011_Init(&wifi, &spi);
 
-    // IAP_InitTypeDef IAPx;
-    // IAP_Init(
-    //     &IAPx,
-    //     0x8002000,
-    //     &wifi,
-    //     (pIAPYmodemReceiveDataFunction)NRF24L01_YmodemReceiveData,
-    //     (pIAPOutputDataFunction)NRF24L01_SendData);
+    SERIAL_InitTypeDef serial;
+    Serial1_Init(&serial);
 
-    // if (WifiMode == 1) {
-    //     NRF24L01_TxMode(&wifi);
-    // } else {
-    //     IAP_ShowMenu(&IAPx);
-    //     Delay_ms(10);
-
-    //     NRF24L01_RxMode(&wifi);
-    // }
+    IAP_InitTypeDef IAPx;
+    IAP_Init(
+        &IAPx,
+        &serial,
+        0x8002000);
 
     JOYSTICK_InitTypeDef Joystick1;
     JOYSTICK_Init(
@@ -114,23 +106,23 @@ int main()
     // uint8_t LastChar = 0;
     while (1) {
         // JOYSTICK DEMO
-        uint16_t xValue, yValue;
-        uint8_t Joystick1IsPressed;
+        // uint16_t xValue, yValue;
+        // uint8_t Joystick1IsPressed;
 
-        xValue             = JOYSTICK_GetXValue(&Joystick1);
-        yValue             = JOYSTICK_GetYValue(&Joystick1);
-        Joystick1IsPressed = JOYSTICK_IsPressed(&Joystick1);
+        // xValue             = JOYSTICK_GetXValue(&Joystick1);
+        // yValue             = JOYSTICK_GetYValue(&Joystick1);
+        // Joystick1IsPressed = JOYSTICK_IsPressed(&Joystick1);
 
-        OLED_ShowString(&oled1, 0, 0, "X", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
-        OLED_ShowNumber(&oled1, 16, 0, xValue, 4, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        // OLED_ShowString(&oled1, 0, 0, "X", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        // OLED_ShowNumber(&oled1, 16, 0, xValue, 4, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
 
-        OLED_ShowString(&oled1, 60, 0, "Y", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
-        OLED_ShowNumber(&oled1, 76, 0, yValue, 4, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        // OLED_ShowString(&oled1, 60, 0, "Y", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        // OLED_ShowNumber(&oled1, 76, 0, yValue, 4, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
 
-        OLED_ShowString(&oled1, 0, 30, "IsPressed", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
-        OLED_ShowNumber(&oled1, 100, 30, Joystick1IsPressed, 2, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        // OLED_ShowString(&oled1, 0, 30, "IsPressed", OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
+        // OLED_ShowNumber(&oled1, 100, 30, Joystick1IsPressed, 2, OLED_FONT_SIZE_12, OLED_COLOR_NORMAL);
 
-        OLED_RefreshScreen(&oled1);
+        // OLED_RefreshScreen(&oled1);
 
         // NRF24L01_TxMode(&wifi);
         // Delay_ms(100);
